@@ -1,0 +1,23 @@
+proc means data=Fire.All_No_Duplicates_2023 noprint; 
+class Region Year;
+ var PersonDayExp; 
+output out=RegionYearStats 
+mean = Mean_PDE 
+std = SD_PDE;
+run; 
+
+proc sql; 
+create table Fire_ZScores as
+ select a.*,
+ b.Mean_PDE,
+ b.SD_PDE, 
+(a.PersonDayExp - b.Mean_PDE) / b.SD_PDE as Zscore 
+from Fire.All_No_Duplicates_2023 as a
+ left join RegionYearStats as b 
+on a.Region = b.Region and a.Year = b.Year; 
+quit; 
+
+data Fire_ZScores; 
+set Fire_ZScores; 
+ExtremeOutlier = (Zscore > 10); 
+run; 
